@@ -52,6 +52,35 @@ def levenshtein(s1, s2):
                           matrix[i - 1][j - 1] + cost)
   return matrix[len(s1)][len(s2)]
 
+@app.route('/api/spelling_accuracy', methods=['POST'])
+def get_spelling_accuracy():
+  try:
+    # Get the text data from the request
+    request_data = request.get_json()
+    extracted_text = request_data.get('text')
+
+    # Calculate the spelling accuracy
+    accuracy = spelling_accuracy(extracted_text)
+
+    # Prepare the response
+    response = {
+        "ok": True,
+        "message": "Spelling accuracy calculated successfully",
+        "accuracy": accuracy
+    }
+
+    # Return the response
+    return jsonify(response), 200
+
+  except Exception as e:
+    # If an error occurs, return an error response
+    response = {
+        "ok": False,
+        "message": f"An error occurred: {str(e)}"
+    }
+    return jsonify(response), 500
+
+
 def spelling_accuracy(extracted_text):
   spell_corrected = TextBlob(extracted_text).correct()
   return ((len(extracted_text) - (levenshtein(extracted_text, spell_corrected)))/(len(extracted_text)+1))*100
