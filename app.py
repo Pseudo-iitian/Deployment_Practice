@@ -2,8 +2,10 @@ from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 import numpy as np
 from textblob import TextBlob
+
+from typing import List
 from language_tool_python.server import LanguageTool
-from language_tool_python.utils import correct
+from language_tool_python.match import Match
 from language_tool_python import LanguageTool
 import requests
 from abydos.phonetic import Soundex, Metaphone, Caverphone, NYSIIS
@@ -120,6 +122,23 @@ def get_grammatical_accuracy():
 
 my_tool = LanguageTool('en-US')
 
+def correct_it(text: str, matches: List[Match]) -> str:
+  """Automatically apply suggestions to the text."""
+  ltext = list(text)
+  matches = [match for match in matches if match.replacements]
+  errors = [ltext[match.offset:match.offset + match.errorLength]
+            for match in matches]
+  correct_offset = 0
+  for n, match in enumerate(matches):
+      frompos, topos = (correct_offset + match.offset,
+                        correct_offset + match.offset + match.errorLength)
+      if ltext[frompos:topos] != errors[n]:
+          continue
+      repl = match.replacements[0]
+      ltext[frompos:topos] = list(repl)
+      correct_offset += len(repl) - len(errors[n])
+  return ''.join(ltext)
+
 def grammatical_accuracy(extracted_text):
   try:
     # Initialize LanguageTool
@@ -128,8 +147,11 @@ def grammatical_accuracy(extracted_text):
     spell_corrected = TextBlob(extracted_text).correct()
     print("Spell corrected:", spell_corrected)
 
+
+    matches = my_tool.check(spell_corrected)  # Assuming lang_tool is an instance of LanguageTool
+
     # Correct grammar
-    correct_text = my_tool.correct(spell_corrected)
+    correct_text = correct_it(spell_corrected,matches)
     print("Corrected text:", correct_text)
 
     # Calculate accuracy
