@@ -3,7 +3,8 @@
   "builds": [
     {
       "src": "Dockerfile",
-      "use": "@vercel/docker"
+      "use": "@vercel/docker",
+      "config": { "runtime": "python3.10.12" }
     }
   ],
   "routes": [
