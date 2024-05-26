@@ -20,7 +20,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Specify the command to run the app
-CMD ["python", "index.py"]
+CMD ["python", "app.py"]
 
 # Expose the port the app runs on
 EXPOSE 5000
