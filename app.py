@@ -9,6 +9,9 @@ from abydos.phonetic import Soundex, Metaphone, Caverphone, NYSIIS
 import logging
 from dotenv import load_dotenv
 import os
+import pickle as pkl
+from sklearn.externals import joblib  # or use sklearn directly if you have a saved model
+
 
 load_dotenv()
 
