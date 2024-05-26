@@ -160,7 +160,9 @@ def grammatical_accuracy(extracted_text):
     n = max(len(extracted_text_set - correct_text_set), len(correct_text_set - extracted_text_set))
     accuracy = ((len(spell_corrected) - n) / (len(spell_corrected) + 1)) * 100
 
-    return accuracy
+    if(accuracy):
+      return accuracy
+    return 0
 
   except Exception as e:
     # Handle any errors gracefully
