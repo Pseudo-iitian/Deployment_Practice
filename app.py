@@ -10,7 +10,7 @@ import logging
 from dotenv import load_dotenv
 import os
 import pickle as pkl
-from sklearn.externals import joblib  # or use sklearn directly if you have a saved model
+import joblib  # or use sklearn directly if you have a saved model
 
 
 load_dotenv()
@@ -167,7 +167,6 @@ def submit_text():
   except Exception as e:
     logging.error(f"An error occurred: {e}")
     return jsonify({"ok": False, "message": "Internal Server Error"}), 500  # Status code 500 for Internal Server Error
-
 
 if __name__ == "__main__":
   app.run(host='0.0.0.0', port=5000)
