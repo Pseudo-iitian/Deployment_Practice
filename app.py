@@ -123,10 +123,12 @@ def grammatical_accuracy(extracted_text):
 
     # Correct spelling
     spell_corrected = TextBlob(extracted_text).correct()
+    print("Spell corrected:", spell_corrected)
 
     # Correct grammar
     correct_text = my_tool.correct(spell_corrected)
-
+    print("Corrected text:", correct_text)
+    
     # Calculate accuracy
     extracted_text_set = set(spell_corrected.split(" "))
     correct_text_set = set(correct_text.split(" "))
