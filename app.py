@@ -1,6 +1,5 @@
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
-import pickle as pkl
 import numpy as np
 from textblob import TextBlob
 import language_tool_python
@@ -9,13 +8,14 @@ from abydos.phonetic import Soundex, Metaphone, Caverphone, NYSIIS
 import logging
 from dotenv import load_dotenv
 import os
-import pickle as pkl
-import joblib  # or use sklearn directly if you have a saved model
-
+import joblib  
+from flask_cors import cross_origin
 
 load_dotenv()
 
 app = Flask(__name__)
+logging.basicConfig(level=logging.DEBUG)
+CORS(app, origins=["*"])
 
 @app.route('/')
 def home():
@@ -28,12 +28,11 @@ def greet():
 quiz_model = None
 loaded_model = None
 
-with open(r"Random_Forest_Model.sav", 'rb') as file:
-  quiz_model = pkl.load(file)
-
-with open(r"Decision_tree_model.sav", 'rb') as file:
-  loaded_model = pkl.load(file)
-
+try:
+  quiz_model = joblib.load(r"Random_Forest_Model.sav")
+  loaded_model = joblib.load(r"Decision_tree_model.sav")
+except Exception as e:
+  logging.error(f"Failed to load models: {e}")
 
 api_key_textcorrection = os.getenv('api_key_textcorrection')
 endpoint_textcorrection = "https://api.bing.microsoft.com/"
@@ -132,41 +131,57 @@ def get_feature_array(extracted_text):
   feature_array.append(percentage_of_phonetic_accuraccy(extracted_text))
   return feature_array
 
-@app.route('/api/submit_text', methods=['POST', 'GET'])
+@app.route('/api/submit_text', methods=['POST'])
+@cross_origin()
 def submit_text():
-  if request.method == 'GET' or not request.data:
-    response = {
-      "ok": True,
-      "message": "Score Available",
-      "result": "this is a dummy result",
-    }
-    return jsonify(response), 200  # Status code 200 for OK
-
   try:
+    # Check if the request method is POST
+    if request.method != 'POST':
+        return jsonify({"ok": False, "message": "Method not allowed"}), 405  # 405 for Method Not Allowed
+    
+    # Get the JSON data from the request
     request_data = request.get_json()
-    print(request_data)
+    
+    # Check if the JSON data and 'text' field are present
     if not request_data or 'text' not in request_data:
-      logging.error("Invalid input")
-      return jsonify({"ok": False, "message": "Invalid input"}), 400  # Status code 400 for Bad Request
-
-    extracted_text = request_data.get('text')
+      return jsonify({"ok": False, "message": "Invalid input"}), 400  # 400 for Bad Request
+    
+    # Extract the text from the request data
+    extracted_text = request_data['text']
+    
+    # Log the received text
     logging.debug(f"Received text: {extracted_text}")
 
+    # Generate features from the extracted text
     features = get_feature_array(extracted_text)
     features_array = np.array([features])
+    
+    # Make prediction using the loaded model
     prediction = loaded_model.predict(features_array)
+    
+    # Determine the result based on the prediction
     result = "There's a high chance that this person is suffering from dyslexia or dysgraphia" if prediction[0] == 1 else "There's a very slim chance that this person is suffering from dyslexia or dysgraphia"
-    print(result)
+    
+    # Log the prediction result
+    logging.debug(f"Prediction result: {result}")
+
+    # Construct the response
     response = {
-      "ok": True,
-      "message": "Score Available",
-      "result": result,
+        "ok": True,
+        "message": "Score Available",
+        "result": result,
     }
-    return jsonify(response), 200  # Status code 200 for OK
+    
+    # Return the response with status code 200
+    return jsonify(response), 200  # 200 for OK
 
   except Exception as e:
+    # Log the error
     logging.error(f"An error occurred: {e}")
-    return jsonify({"ok": False, "message": "Internal Server Error"}), 500  # Status code 500 for Internal Server Error
+
+    # Return an error response with status code 500
+    return jsonify({"ok": False, "message": "Internal Server Error"}), 500  # 500 for Internal Server Error
+
 
 if __name__ == "__main__":
   app.run(host='0.0.0.0', port=5000)
