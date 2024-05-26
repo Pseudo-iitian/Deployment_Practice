@@ -64,9 +64,9 @@ def get_spelling_accuracy():
 
     # Prepare the response
     response = {
-        "ok": True,
-        "message": "Spelling accuracy calculated successfully",
-        "accuracy": accuracy
+      "ok": True,
+      "message": "Spelling accuracy calculated successfully",
+      "accuracy": accuracy
     }
 
     # Return the response
@@ -75,8 +75,8 @@ def get_spelling_accuracy():
   except Exception as e:
     # If an error occurs, return an error response
     response = {
-        "ok": False,
-        "message": f"An error occurred: {str(e)}"
+      "ok": False,
+      "message": f"An error occurred: {str(e)}"
     }
     return jsonify(response), 500
 
