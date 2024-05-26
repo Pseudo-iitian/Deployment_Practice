@@ -85,7 +85,6 @@ def spelling_accuracy(extracted_text):
   spell_corrected = TextBlob(extracted_text).correct()
   return ((len(extracted_text) - (levenshtein(extracted_text, spell_corrected)))/(len(extracted_text)+1))*100
 
-my_tool = language_tool_python.LanguageTool('en-US')
 
 @app.route('/api/grammatical_accuracy', methods=['POST'])
 @cross_origin()
@@ -96,7 +95,7 @@ def get_grammatical_accuracy():
     extracted_text = request_data.get('text')
 
     # Calculate grammatical accuracy
-    accuracy_score = gramatical_accuracy(extracted_text)
+    accuracy_score = grammatical_accuracy(extracted_text)
 
     # Prepare the response
     response = {
@@ -117,16 +116,29 @@ def get_grammatical_accuracy():
     return jsonify(response), 500
 
 
-def gramatical_accuracy(extracted_text):
-  spell_corrected = TextBlob(extracted_text).correct()
-  correct_text = my_tool.correct(spell_corrected)
-  extracted_text_set = set(spell_corrected.split(" "))
-  correct_text_set = set(correct_text.split(" "))
-  n = max(len(extracted_text_set - correct_text_set),
-          len(correct_text_set - extracted_text_set))
-  return ((len(spell_corrected) - n)/(len(spell_corrected)+1))*100
+def grammatical_accuracy(extracted_text):
+  try:
+    # Initialize LanguageTool
+    my_tool = language_tool_python.LanguageTool('en-US')
 
+    # Correct spelling
+    spell_corrected = TextBlob(extracted_text).correct()
 
+    # Correct grammar
+    correct_text = my_tool.correct(spell_corrected)
+
+    # Calculate accuracy
+    extracted_text_set = set(spell_corrected.split(" "))
+    correct_text_set = set(correct_text.split(" "))
+    n = max(len(extracted_text_set - correct_text_set), len(correct_text_set - extracted_text_set))
+    accuracy = ((len(spell_corrected) - n) / (len(spell_corrected) + 1)) * 100
+
+    return accuracy
+
+  except Exception as e:
+    # Handle any errors gracefully
+    print(f"An error occurred: {e}")
+    return None
 
 @app.route('/api/percentage_of_corrections', methods=['POST'])
 @cross_origin()
@@ -276,7 +288,8 @@ def display_feature_array():
 def get_feature_array(extracted_text):
   feature_array = []
   feature_array.append(spelling_accuracy(extracted_text))
-  feature_array.append(gramatical_accuracy(extracted_text))
+  feature_array.append(grammatical_accuracy(extracted_text))
+  # feature_array.append(98)
   feature_array.append(percentage_of_corrections(extracted_text))
   feature_array.append(percentage_of_phonetic_accuraccy(extracted_text))
   return feature_array
