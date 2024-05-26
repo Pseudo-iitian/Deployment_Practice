@@ -58,6 +58,35 @@ def spelling_accuracy(extracted_text):
 
 my_tool = language_tool_python.LanguageTool('en-US')
 
+@app.route('/api/grammatical_accuracy', methods=['POST'])
+def get_grammatical_accuracy():
+  try:
+    # Get the text data from the request
+    request_data = request.get_json()
+    extracted_text = request_data.get('text')
+
+    # Calculate grammatical accuracy
+    accuracy_score = gramatical_accuracy(extracted_text)
+
+    # Prepare the response
+    response = {
+      "ok": True,
+      "message": "Grammatical accuracy calculated successfully",
+      "accuracy_score": accuracy_score
+    }
+
+    # Return the response
+    return jsonify(response), 200
+
+  except Exception as e:
+    # If an error occurs, return an error response
+    response = {
+        "ok": False,
+        "message": f"An error occurred: {str(e)}"
+    }
+    return jsonify(response), 500
+
+
 def gramatical_accuracy(extracted_text):
   spell_corrected = TextBlob(extracted_text).correct()
   correct_text = my_tool.correct(spell_corrected)
@@ -66,6 +95,37 @@ def gramatical_accuracy(extracted_text):
   n = max(len(extracted_text_set - correct_text_set),
           len(correct_text_set - extracted_text_set))
   return ((len(spell_corrected) - n)/(len(spell_corrected)+1))*100
+
+
+
+@app.route('/api/percentage_of_corrections', methods=['POST'])
+def get_percentage_of_corrections():
+  try:
+    # Get the text data from the request
+    request_data = request.get_json()
+    extracted_text = request_data.get('text')
+
+    # Calculate percentage of corrections
+    correction_percentage = percentage_of_corrections(extracted_text)
+
+    # Prepare the response
+    response = {
+        "ok": True,
+        "message": "Percentage of corrections calculated successfully",
+        "correction_percentage": correction_percentage
+    }
+
+    # Return the response
+    return jsonify(response), 200
+
+  except Exception as e:
+    # If an error occurs, return an error response
+    response = {
+        "ok": False,
+        "message": f"An error occurred: {str(e)}"
+    }
+    return jsonify(response), 500
+
 
 def percentage_of_corrections(extracted_text):
   data = {'text': extracted_text}
@@ -86,6 +146,36 @@ def percentage_of_corrections(extracted_text):
   else:
     percentage_corrected = 0
   return percentage_corrected
+
+
+
+@app.route('/api/percentage_of_phonetic_accuraccy', methods=['POST'])
+def get_percentage_of_phonetic_accuraccy():
+  try:
+    # Get the text data from the request
+    request_data = request.get_json()
+    extracted_text = request_data.get('text')
+
+    # Calculate percentage of phonetic accuracy
+    phonetic_accuracy_percentage = percentage_of_phonetic_accuraccy(extracted_text)
+
+    # Prepare the response
+    response = {
+        "ok": True,
+        "message": "Percentage of phonetic accuracy calculated successfully",
+        "phonetic_accuracy_percentage": phonetic_accuracy_percentage
+    }
+
+    # Return the response
+    return jsonify(response), 200
+
+  except Exception as e:
+    # If an error occurs, return an error response
+    response = {
+        "ok": False,
+        "message": f"An error occurred: {str(e)}"
+    }
+    return jsonify(response), 500
 
 def percentage_of_phonetic_accuraccy(extracted_text: str):
   soundex = Soundex()
@@ -122,6 +212,33 @@ def percentage_of_phonetic_accuraccy(extracted_text: str):
   nysiis_score = (len(extracted_nysiis_string)-(levenshtein(extracted_nysiis_string,spell_corrected_nysiis_string)))/(len(extracted_nysiis_string)+1)
   return ((0.5*caverphone_score + 0.2*soundex_score + 0.2*metaphone_score + 0.1 * nysiis_score))*100
 
+@app.route('/api/feature_array', methods=['POST'])
+def display_feature_array():
+  try:
+    # Get the text data from the request
+    request_data = request.get_json()
+    extracted_text = request_data.get('text')
+
+    # Calculate the feature array
+    feature_array = get_feature_array(extracted_text)
+
+    # Prepare the response
+    response = {
+      "ok": True,
+      "message": "Feature array calculated successfully",
+      "feature_array": feature_array
+    }
+
+    # Return the response
+    return jsonify(response), 200
+
+  except Exception as e:
+    # If an error occurs, return an error response
+    response = {
+      "ok": False,
+      "message": f"An error occurred: {str(e)}"
+    }
+    return jsonify(response), 500
 
 def get_feature_array(extracted_text):
   feature_array = []
@@ -132,12 +249,12 @@ def get_feature_array(extracted_text):
   return feature_array
 
 @app.route('/api/submit_text', methods=['POST'])
-@cross_origin()
+# @cross_origin()
 def submit_text():
   try:
     # Check if the request method is POST
     if request.method != 'POST':
-        return jsonify({"ok": False, "message": "Method not allowed"}), 405  # 405 for Method Not Allowed
+      return jsonify({"ok": False, "message": "Method not allowed"}), 405  # 405 for Method Not Allowed
     
     # Get the JSON data from the request
     request_data = request.get_json()
@@ -161,7 +278,7 @@ def submit_text():
     
     # Determine the result based on the prediction
     result = "There's a high chance that this person is suffering from dyslexia or dysgraphia" if prediction[0] == 1 else "There's a very slim chance that this person is suffering from dyslexia or dysgraphia"
-    
+
     # Log the prediction result
     logging.debug(f"Prediction result: {result}")
 
@@ -184,4 +301,4 @@ def submit_text():
 
 
 if __name__ == "__main__":
-  app.run(host='0.0.0.0', port=5000)
+  app.run(debug=True,host='0.0.0.0', port=5000)
