@@ -2,7 +2,8 @@ from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 import numpy as np
 from textblob import TextBlob
-import language_tool_python
+# import language_tool_python
+from language_tool_python.server import LanguageTool
 import requests
 from abydos.phonetic import Soundex, Metaphone, Caverphone, NYSIIS
 import logging
@@ -119,7 +120,7 @@ def get_grammatical_accuracy():
 def grammatical_accuracy(extracted_text):
   try:
     # Initialize LanguageTool
-    my_tool = language_tool_python.LanguageTool('en-US')
+    my_tool = LanguageTool('en-US')
 
     # Correct spelling
     spell_corrected = TextBlob(extracted_text).correct()
@@ -128,7 +129,7 @@ def grammatical_accuracy(extracted_text):
     # Correct grammar
     correct_text = my_tool.correct(spell_corrected)
     print("Corrected text:", correct_text)
-    
+
     # Calculate accuracy
     extracted_text_set = set(spell_corrected.split(" "))
     correct_text_set = set(correct_text.split(" "))
