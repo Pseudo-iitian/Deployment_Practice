@@ -59,6 +59,7 @@ def spelling_accuracy(extracted_text):
 my_tool = language_tool_python.LanguageTool('en-US')
 
 @app.route('/api/grammatical_accuracy', methods=['POST'])
+@cross_origin()
 def get_grammatical_accuracy():
   try:
     # Get the text data from the request
@@ -99,6 +100,7 @@ def gramatical_accuracy(extracted_text):
 
 
 @app.route('/api/percentage_of_corrections', methods=['POST'])
+@cross_origin()
 def get_percentage_of_corrections():
   try:
     # Get the text data from the request
@@ -150,6 +152,7 @@ def percentage_of_corrections(extracted_text):
 
 
 @app.route('/api/percentage_of_phonetic_accuraccy', methods=['POST'])
+@cross_origin()
 def get_percentage_of_phonetic_accuraccy():
   try:
     # Get the text data from the request
@@ -213,6 +216,7 @@ def percentage_of_phonetic_accuraccy(extracted_text: str):
   return ((0.5*caverphone_score + 0.2*soundex_score + 0.2*metaphone_score + 0.1 * nysiis_score))*100
 
 @app.route('/api/feature_array', methods=['POST'])
+@cross_origin()
 def display_feature_array():
   try:
     # Get the text data from the request
@@ -249,7 +253,7 @@ def get_feature_array(extracted_text):
   return feature_array
 
 @app.route('/api/submit_text', methods=['POST'])
-# @cross_origin()
+@cross_origin()
 def submit_text():
   try:
     # Check if the request method is POST
