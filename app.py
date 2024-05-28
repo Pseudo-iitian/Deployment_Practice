@@ -21,13 +21,10 @@ app = Flask(__name__)
 logging.basicConfig(level=logging.DEBUG)
 CORS(app, origins=["*"])
 
-@app.route('/')
+@app.route('/',methods=['POST','GET'])
+@cross_origin()
 def home():
-  return render_template('index.html')
-
-@app.route('/api/greet')
-def greet():
-  return {"message": "Hello, welcome to the Flask app!"}
+  return {"message": "Wakeup Call made!"}
 
 quiz_model = None
 loaded_model = None
